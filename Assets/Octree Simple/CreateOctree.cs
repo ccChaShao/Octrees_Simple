@@ -1,18 +1,27 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CreateOctree : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public int minNodeSize;
+    public GameObject[] worldObjects;
+    
+    private Octree m_Octree;
+    
     void Start()
     {
-        
+        m_Octree = new Octree(worldObjects, minNodeSize);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnDrawGizmos()
     {
+        if (!Application.isPlaying)
+        {
+            return;
+        }
         
+        m_Octree.rootNode.DrawGizoms();
     }
 }
