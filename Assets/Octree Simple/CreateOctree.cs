@@ -9,10 +9,12 @@ public class CreateOctree : MonoBehaviour
     public GameObject[] worldObjects;
     
     private Octree m_Octree;
+    private Graph m_WayPointGraph;
     
     void Start()
     {
-        m_Octree = new Octree(worldObjects, minNodeSize);
+        m_WayPointGraph = new Graph();
+        m_Octree = new Octree(worldObjects, minNodeSize, m_WayPointGraph);
     }
 
     private void OnDrawGizmos()
@@ -22,6 +24,7 @@ public class CreateOctree : MonoBehaviour
             return;
         }
         
-        m_Octree.rootNode.DrawGizoms();
+        m_Octree.rootNode.DrawDebug();
+        m_Octree.navigationGraph.DrawDebug();
     }
 }
