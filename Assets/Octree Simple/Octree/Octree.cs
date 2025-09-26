@@ -55,22 +55,12 @@ public class Octree
                 navigationGraph.AddNode(otn);   // 根节点记录
             }
         }
-        // 子节点查询
+        // 子节点递归查询
         else
         {
             for (int i = 0; i < otn.childrenNodes.Length; i++)
             {
-                // 递归处理
                 GetEmptyLeaves(otn.childrenNodes[i]);
-                
-                // // 节点路径绘制
-                // for (int j = 0; j < otn.childrenNodes.Length; j++)
-                // {
-                //     if (i == j)
-                //         continue;
-                //     // 同层级路径连接
-                //     navigationGraph.AddEdge(otn.childrenNodes[i], otn.childrenNodes[j]);
-                // }
             }
         }
     }
