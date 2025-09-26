@@ -4,15 +4,17 @@ using UnityEngine;
 public class Graph
 {
     public List<Edge> edgeList = new();
-    public List<Node> nodeList = new();
-    public List<Node> pathList = new();
+    public Dictionary<int, Node> nodeMap = new();
+    
+    // A*
+    public List<Node> pathCacheList = new();            // 缓存最新寻路找到的所有路径节点；
 
     public void AddNode(OctreeNode otn)
     {
         if (FindNode(otn.id) == null)
         {
             Node node = new Node(otn);           // 一个树节点 = 一个路径节点
-            nodeList.Add(node);
+            nodeMap[otn.id] = node;
         }
     }
 
@@ -34,21 +36,16 @@ public class Graph
 
     public Node FindNode(int otnId)
     {
-        foreach (var node in nodeList)
-        {
-            if (node.octreeNode.id == otnId)
-                return node;
-        }
-        return null;
+        return nodeMap[otnId];
     }
 
     public void DrawDebug()
     {
         // 边界球体绘制
-        for (int i = 0; i < nodeList.Count; i++)
+        foreach (var kv in nodeMap)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(nodeList[i].octreeNode.nodeBounds.center, 0.25f);
+            Gizmos.DrawWireSphere(kv.Value.octreeNode.nodeBounds.center, 0.25f);
         }
         
         // 边界路径绘制
@@ -61,4 +58,45 @@ public class Graph
             );
         }
     }
+
+    public bool AStar(OctreeNode startNode, OctreeNode endNode)
+    {
+        pathCacheList.Clear();
+        Node start = FindNode(startNode.id);
+        Node end = FindNode(endNode.id);
+
+        if (start == null || end == null)
+        {
+            return false;
+        }
+
+        // 两点重复，直接返回
+        if (startNode.id == endNode.id)
+        {
+            pathCacheList.Add(start);
+            return true;
+        }
+
+        List<Node> openList = new();            // open
+        List<Node> closeList = new();           // close
+        float gScore = 0;
+        bool isBetter = false;
+
+        // 代价计算
+        start.g = 0;
+        start.h = Vector3.SqrMagnitude(endNode.nodeBounds.center - startNode.nodeBounds.center);
+        
+        openList.Add(start);
+        while (openList.Count > 0)
+        {
+            
+        }
+        
+        return true;
+    }
+
+    // private int lowesf(List<Node> openList)
+    // {
+    //     int lowesf = 0;
+    // }
 }
