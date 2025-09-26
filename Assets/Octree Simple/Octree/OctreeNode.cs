@@ -26,6 +26,9 @@ public class OctreeNode
     public Bounds nodeBounds = new();
     public Bounds[] childNodeBounds = null;
     
+    // 父亲节点信息
+    public OctreeNode parent;
+    
     // 孩子节点信息
     public bool isContainedChild = false;
     public OctreeNode[] childrenNodes = null;
@@ -33,9 +36,10 @@ public class OctreeNode
     // 世界物体包含信息
     public List<OctreeObject> containedObjects = new();
 
-    public OctreeNode(Bounds nodeBounds, float minSize)
+    public OctreeNode(Bounds nodeBounds, float minSize, OctreeNode parent)
     {
         this.id = Utils.idInt++;
+        this.parent = parent;
         this.nodeBounds = nodeBounds;
         this.minSize = minSize;
         BuildChildBounds();
@@ -75,7 +79,7 @@ public class OctreeNode
         for (int i = 0; i < 8; i++)
         {
             if (childrenNodes[i] == null) 
-                childrenNodes[i] = new OctreeNode(childNodeBounds[i], minSize);
+                childrenNodes[i] = new OctreeNode(childNodeBounds[i], minSize, this);
             if (childrenNodes[i].nodeBounds.Intersects(octObj.bounds))
             {
                 isContainedChild = true;
@@ -84,8 +88,8 @@ public class OctreeNode
         }
         if (!isContainedChild)
         {
-            childrenNodes = null;
-            containedObjects.Add(octObj);           // 没有小结点能够包含，则直接包含；
+            childrenNodes = null;           // 清理节点；
+            containedObjects.Add(octObj);   // 直接包含；
         }
     }
 

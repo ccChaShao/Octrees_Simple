@@ -10,7 +10,7 @@ public class Node
     
     public Node(OctreeNode octreeNode)
     {
+        path = null;
         this.octreeNode = octreeNode;
-        this.path = null;
     }
 }

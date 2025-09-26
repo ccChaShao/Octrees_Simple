@@ -6,8 +6,6 @@ public class Graph
     public List<Edge> edgeList = new();
     public List<Node> nodeList = new();
     public List<Node> pathList = new();
-    
-    public Graph() { }
 
     public void AddNode(OctreeNode otn)
     {
@@ -42,16 +40,6 @@ public class Graph
                 return node;
         }
         return null;
-    }
-
-    public int GetPathLength()
-    {
-        return pathList.Count;
-    }
-
-    public OctreeNode GetPathPoint(int index)
-    {
-        return pathList[index].octreeNode;
     }
 
     public void DrawDebug()
