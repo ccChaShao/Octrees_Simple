@@ -10,6 +10,9 @@ public class CreateOctree : MonoBehaviour
     
     private Octree m_Octree;
     private Graph m_WayPointGraph;
+
+    public Octree Octree => m_Octree;
+    public Graph WayPointGraph => m_WayPointGraph;
     
     void Start()
     {

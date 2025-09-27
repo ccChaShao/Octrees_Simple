@@ -4,7 +4,7 @@ using UnityEngine;
 public class Graph
 {
     public List<Edge> edgeList = new();
-    public Dictionary<int, Node> nodeMap = new();
+    public List<Node> nodeList = new();
     
     // A*
     public List<Node> pathCacheList = new();            // 缓存最新寻路找到的所有路径节点；
@@ -14,7 +14,7 @@ public class Graph
         if (FindNode(otn.id) == null)
         {
             Node node = new Node(otn);           // 一个树节点 = 一个路径节点
-            nodeMap[otn.id] = node;
+            nodeList.Add(node);
         }
     }
 
@@ -36,16 +36,34 @@ public class Graph
 
     public Node FindNode(int otnId)
     {
-        return nodeMap[otnId];
+        for (int i = 0; i < nodeList.Count; i++)
+        {
+            if (nodeList[i].octreeNode.id == otnId)
+            {
+                return nodeList[i];
+            }
+        }
+
+        return null;
+    }
+
+    public int GetChachePathCount()
+    {
+        return pathCacheList.Count;
+    }
+
+    public Node GetCachePathNode(int index)
+    {
+        return pathCacheList[index];
     }
 
     public void DrawDebug()
     {
         // 边界球体绘制
-        foreach (var kv in nodeMap)
+        foreach (var node in nodeList)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(kv.Value.octreeNode.nodeBounds.center, 0.25f);
+            Gizmos.DrawWireSphere(node.octreeNode.nodeBounds.center, 0.25f);
         }
         
         // 边界路径绘制
@@ -79,9 +97,6 @@ public class Graph
 
         List<Node> openList = new();            // open
         List<Node> closeList = new();           // close（记录的是走过的路径）
-        
-        // float betterGS = float.MaxValue;
-        // bool isBetter = false;
 
         // 代价计算
         start.g = 0;
