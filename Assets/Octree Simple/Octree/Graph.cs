@@ -70,7 +70,7 @@ public class Graph
             return false;
         }
 
-        // 两点重复，直接返回
+        // 一开始就是终点
         if (startNode.id == endNode.id)
         {
             pathCacheList.Add(start);
@@ -78,9 +78,10 @@ public class Graph
         }
 
         List<Node> openList = new();            // open
-        List<Node> closeList = new();           // close
-        float gScore = 0;
-        bool isBetter = false;
+        List<Node> closeList = new();           // close（记录的是走过的路径）
+        
+        // float betterGS = float.MaxValue;
+        // bool isBetter = false;
 
         // 代价计算
         start.g = 0;
@@ -89,14 +90,99 @@ public class Graph
         openList.Add(start);
         while (openList.Count > 0)
         {
+            int thisI = GetLowestFIndex(openList);
+            Node thisN = openList[thisI];
             
+            // 到达终点则结束
+            if (thisN.octreeNode.id == endNode.id)
+            {
+                ReconstructPath(start, end);
+                return true;
+            }
+            
+            // 数列更新
+            openList.RemoveAt(thisI);         // 待考察的节点
+            closeList.Add(thisN);             // 已经考察过的节点
+            
+            Node neighbourN;
+            foreach (Edge edge in thisN.edgeList)
+            {
+                neighbourN = edge.endNode;
+
+                if (closeList.IndexOf(neighbourN) > -1)
+                {
+                    continue; 
+                }
+
+                bool isBetterG = false;
+                float newG = thisN.g + Vector3.SqrMagnitude
+                (
+                    neighbourN.octreeNode.nodeBounds.center -
+                    thisN.octreeNode.nodeBounds.center
+                );
+
+                // 首次被发现
+                if (openList.IndexOf(neighbourN) == -1)
+                {
+                    openList.Add(neighbourN);
+                    isBetterG = true;
+                }
+                // 有更近的入口点
+                else if (newG <= neighbourN.g)
+                {
+                    isBetterG = true;
+                }
+                
+                // 数据更新
+                if (isBetterG)
+                {
+                    neighbourN.cameFrom = thisN;                // 更新来源点
+                    neighbourN.g = newG;                        // 已消耗代价更新
+                    neighbourN.h = Vector3.SqrMagnitude(        // 启发代价更新
+                        endNode.nodeBounds.center -
+                        neighbourN.octreeNode.nodeBounds.center
+                    );
+                }
+            }
         }
         
-        return true;
+        return false;
     }
 
-    // private int lowesf(List<Node> openList)
-    // {
-    //     int lowesf = 0;
-    // }
+    /// <summary>
+    /// 找到最低f的节点
+    /// </summary>
+    private int GetLowestFIndex(List<Node> openList)
+    {
+        float lowestF = -9999;
+        int lowestIndex = 0;
+        for (int i = 0; i < openList.Count; i++)
+        {
+            if (openList[i].f <= lowestF)
+            {
+                lowestF = openList[i].f;
+                lowestIndex = i;
+            }
+        }
+
+        return lowestIndex;
+    }
+
+    /// <summary>
+    ///  路径回溯
+    /// </summary>
+    private void ReconstructPath(Node startNode, Node endNode)
+    {
+        pathCacheList.Clear();
+        pathCacheList.Add(endNode);
+
+        var from = endNode.cameFrom;
+        while (from != null && from != startNode)
+        {
+            pathCacheList.Insert(0, from);          // 添加到数列首部
+            from = from.cameFrom;
+        }
+
+        pathCacheList.Insert(0, startNode);
+    }
 }
