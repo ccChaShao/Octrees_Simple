@@ -13,8 +13,8 @@ public class CreateOctree : MonoBehaviour
 
     public Octree Octree => m_Octree;
     public Graph WayPointGraph => m_WayPointGraph;
-    
-    void Start()
+
+    private void Awake()
     {
         m_WayPointGraph = new Graph();
         m_Octree = new Octree(worldObjects, minNodeSize, m_WayPointGraph);

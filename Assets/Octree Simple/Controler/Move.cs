@@ -15,6 +15,7 @@ public class Move : MonoBehaviour
     public GameObject createOctree;
     private Octree octree;
     private Graph graph;
+    public List<Node> aStarPathList = new();
     
     void Start()
     {
@@ -28,21 +29,21 @@ public class Move : MonoBehaviour
             return;
         }
 
-        if (currentWayPoint >= graph.GetCachePathCount())
+        if (currentWayPoint >= GetAStarPathCount())
         {
             ReStartMove();
         }
         else
         {
-            float distance = Vector3.Distance(graph.GetCachePathNode(currentWayPoint).octreeNode.nodeBounds.center, transform.position);
+            float distance = Vector3.Distance(GetAstarPathNode(currentWayPoint).octreeNode.nodeBounds.center, transform.position);
             if (distance <= accuray)
             {
                 currentWayPoint++;
             }
 
-            if (currentWayPoint < graph.GetCachePathCount())
+            if (currentWayPoint < GetAStarPathCount())
             {
-                currentNode = graph.GetCachePathNode(currentWayPoint).octreeNode;
+                currentNode = GetAstarPathNode(currentWayPoint).octreeNode;
                 Vector3 direction = currentNode.nodeBounds.center - transform.position;
                 transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
             }
@@ -65,11 +66,21 @@ public class Move : MonoBehaviour
             : graph.nodeList[Random.Range(0, graph.nodeList.Count)].octreeNode;
         var endNode = graph.nodeList[Random.Range(0, graph.nodeList.Count)].octreeNode;
         
-        bool randomSuc = graph.AStar(startNode, endNode);
+        bool randomSuc = graph.AStar(startNode, endNode, ref aStarPathList);
         if (randomSuc)
         {
             currentWayPoint = 0;
-            transform.position = graph.GetCachePathNode(0).octreeNode.nodeBounds.center;
+            transform.position = GetAstarPathNode(0).octreeNode.nodeBounds.center;
         }
+    }
+
+    private int GetAStarPathCount()
+    {
+        return aStarPathList.Count;
+    }
+
+    private Node GetAstarPathNode(int index)
+    {
+        return aStarPathList[index];
     }
 }

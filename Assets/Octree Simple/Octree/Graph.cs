@@ -5,9 +5,6 @@ public class Graph
 {
     public List<Edge> edgeList = new();
     public List<Node> nodeList = new();
-    
-    // A*
-    public List<Node> pathCacheList = new();            // 缓存最新寻路找到的所有路径节点；
 
     public void AddNode(OctreeNode otn)
     {
@@ -47,16 +44,6 @@ public class Graph
         return null;
     }
 
-    public int GetCachePathCount()
-    {
-        return pathCacheList.Count;
-    }
-
-    public Node GetCachePathNode(int index)
-    {
-        return pathCacheList[index];
-    }
-
     public void DrawDebug()
     {
         // 边界球体绘制
@@ -73,20 +60,6 @@ public class Graph
                 edgeList[i].startNode.octreeNode.nodeBounds.center,
                 edgeList[i].endNode.octreeNode.nodeBounds.center,
                 Color.red
-            );
-        }
-        
-        // a*路径绘制
-        for (int i = 0; i < pathCacheList.Count; i++)
-        {
-            if (i + 1 >= pathCacheList.Count)
-            {
-                continue;
-            }
-            Debug.DrawLine(
-                pathCacheList[i].octreeNode.nodeBounds.center,
-                pathCacheList[i+1].octreeNode.nodeBounds.center,
-                Color.black
             );
         }
     }
@@ -122,9 +95,8 @@ public class Graph
         }
     }
 
-    public bool AStar(OctreeNode startNode, OctreeNode endNode)
+    public bool AStar(OctreeNode startNode, OctreeNode endNode, ref List<Node> pathList)
     {
-        pathCacheList.Clear();
         Node start = FindNode(startNode.id);
         Node end = FindNode(endNode.id);
 
@@ -134,9 +106,10 @@ public class Graph
         }
 
         // 一开始就是终点
-        if (startNode.id == endNode.id)
+        if (start.octreeNode.id == end.octreeNode.id)
         {
-            pathCacheList.Add(start);
+            end.cameFrom = start;
+            ReconstructPath(start, end, ref pathList);
             return true;
         }
 
@@ -156,7 +129,7 @@ public class Graph
             // 到达终点则结束
             if (thisN.octreeNode.id == endNode.id)
             {
-                ReconstructPath(start, end);
+                ReconstructPath(start, end, ref pathList);
                 return true;
             }
             
@@ -230,18 +203,18 @@ public class Graph
     /// <summary>
     ///  路径回溯
     /// </summary>
-    private void ReconstructPath(Node startNode, Node endNode)
+    private void ReconstructPath(Node startNode, Node endNode, ref List<Node> pathList)
     {
-        pathCacheList.Clear();
-        pathCacheList.Add(endNode);
+        pathList.Clear();
+        pathList.Add(endNode);
 
         var from = endNode.cameFrom;
         while (from != null && from != startNode)
         {
-            pathCacheList.Insert(0, from);          // 添加到数列首部
+            pathList.Insert(0, from);          // 添加到数列首部
             from = from.cameFrom;
         }
 
-        pathCacheList.Insert(0, startNode);
+        pathList.Insert(0, startNode);
     }
 }
