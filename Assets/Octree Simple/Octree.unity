@@ -888,9 +888,6 @@ MonoBehaviour:
   worldObjects:
   - {fileID: 1693057052}
   - {fileID: 1238958313}
-  - {fileID: 801478503}
-  - {fileID: 1869810317}
-  - {fileID: 736157657}
 --- !u!4 &1578681835
 Transform:
   m_ObjectHideFlags: 0

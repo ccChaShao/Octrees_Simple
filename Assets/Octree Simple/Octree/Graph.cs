@@ -103,7 +103,6 @@ public class Graph
     {
         for (int i = 0; i < nodeList.Count; i++)                // 一层循环
         {
-            List<Node> neighbours = new();
             for (int j = 0; j < nodeList.Count; j++)            // 二层循环
             {
                 if (i == j)
@@ -115,20 +114,15 @@ public class Graph
                     m_CacheRay.origin = nodeList[i].octreeNode.nodeBounds.center;
                     m_CacheRay.direction = m_SixDirs[k];
                     float maxLength = nodeList[i].octreeNode.nodeBounds.size.x / 2.0f + 0.01f;
-                    // 最多是24个
+                    // 单次最多是24个
                     if (nodeList[j].octreeNode.nodeBounds.IntersectRay(m_CacheRay, out float hitLength))
                     {
-                        if (hitLength < maxLength)
+                        if (hitLength <= maxLength)
                         {
-                            neighbours.Add(nodeList[j]);
+                            AddEdge(nodeList[i].octreeNode, nodeList[j].octreeNode);
                         }
                     }
                 }
-            }
-
-            foreach (var otn in neighbours)
-            {
-                AddEdge(nodeList[i].octreeNode, otn.octreeNode);
             }
         }
     }
