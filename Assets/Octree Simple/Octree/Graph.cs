@@ -3,8 +3,19 @@ using UnityEngine;
 
 public class Graph
 {
-    public List<Edge> edgeList = new();
     public List<Node> nodeList = new();
+    public List<Edge> edgeList = new();
+
+    private Ray m_CacheRay = new ();
+    private List<Vector3> m_SixDirs = new()
+    {
+        Vector3.forward,
+        Vector3.back,
+        Vector3.left,
+        Vector3.right,
+        Vector3.up,
+        Vector3.down
+    };
 
     public void AddNode(OctreeNode otn)
     {
@@ -15,8 +26,26 @@ public class Graph
         }
     }
 
+    public Node FindNode(int otnId)
+    {
+        for (int i = 0; i < nodeList.Count; i++)
+        {
+            if (nodeList[i].octreeNode.id == otnId)
+            {
+                return nodeList[i];
+            }
+        }
+
+        return null;
+    }
+
     public void AddEdge(OctreeNode fromOtn, OctreeNode toOtn)
     {
+        if (FindEdge(fromOtn, toOtn) != null)
+        {
+            return;
+        }
+        
         Node from = FindNode(fromOtn.id);
         Node to = FindNode(toOtn.id);
         if (from != null && to != null)
@@ -31,16 +60,22 @@ public class Graph
         }
     }
 
-    public Node FindNode(int otnId)
+    public Edge FindEdge(OctreeNode fromOtn, OctreeNode toOtn)
     {
-        for (int i = 0; i < nodeList.Count; i++)
+        Node from = FindNode(fromOtn.id);
+        Node to = FindNode(toOtn.id);
+        if (from != null && to != null)
         {
-            if (nodeList[i].octreeNode.id == otnId)
+            for (int i = 0; i < from.edgeList.Count; i++)
             {
-                return nodeList[i];
+                var element = from.edgeList[i];
+                if (element.endNode.octreeNode.id == toOtn.id)
+                {
+                    return element;
+                }
             }
         }
-
+        
         return null;
     }
 
@@ -64,33 +99,36 @@ public class Graph
         }
     }
 
-    public void ProcrssConnections()
+    public void ConnectNodeNodeNeighbours()
     {
-        Dictionary<int, int> subGraphConnections = new();
-        
-        foreach (var nodeI in nodeList)
+        for (int i = 0; i < nodeList.Count; i++)                // 一层循环
         {
-            foreach (var nodeJ in nodeList)
+            List<Node> neighbours = new();
+            for (int j = 0; j < nodeList.Count; j++)            // 二层循环
             {
-                var otnI = nodeI.octreeNode;
-                var otnJ = nodeJ.octreeNode;
-                
-                if(otnI.id == otnJ.id)
+                if (i == j)
+                {
                     continue;
-
-                // 同层级连接
-                if (otnI.parent.id == otnJ.parent.id)
-                {
-                    AddEdge(otnI, otnJ);
                 }
-                // 不同层级连接
-                else
+                for (int k = 0; k < m_SixDirs.Count; k++)
                 {
-                    if (subGraphConnections.TryAdd(otnI.parent.id, otnJ.parent.id))         // 假如已经连接过，就不需要再连接了，暂时这样处理
+                    m_CacheRay.origin = nodeList[i].octreeNode.nodeBounds.center;
+                    m_CacheRay.direction = m_SixDirs[k];
+                    float maxLength = nodeList[i].octreeNode.nodeBounds.size.x / 2.0f + 0.01f;
+                    // 最多是24个
+                    if (nodeList[j].octreeNode.nodeBounds.IntersectRay(m_CacheRay, out float hitLength))
                     {
-                        AddEdge(otnI, otnJ);
+                        if (hitLength < maxLength)
+                        {
+                            neighbours.Add(nodeList[j]);
+                        }
                     }
                 }
+            }
+
+            foreach (var otn in neighbours)
+            {
+                AddEdge(nodeList[i].octreeNode, otn.octreeNode);
             }
         }
     }
@@ -139,9 +177,9 @@ public class Graph
             
             foreach (Edge edge in thisN.edgeList)
             {
-                Node neighbourN = edge.endNode;
+                Node edgeEndNode = edge.endNode;
 
-                if (closeList.IndexOf(neighbourN) > -1)
+                if (closeList.IndexOf(edgeEndNode) > -1)
                 {
                     continue; 
                 }
@@ -149,18 +187,18 @@ public class Graph
                 bool updateNode = false;
                 float newG = thisN.g + Vector3.SqrMagnitude
                 (
-                    neighbourN.octreeNode.nodeBounds.center -
+                    edgeEndNode.octreeNode.nodeBounds.center -
                     thisN.octreeNode.nodeBounds.center
                 );
 
                 // 首次被发现
-                if (openList.IndexOf(neighbourN) <= -1)
+                if (openList.IndexOf(edgeEndNode) <= -1)
                 {
-                    openList.Add(neighbourN);
+                    openList.Add(edgeEndNode);
                     updateNode = true;
                 }
                 // 有更近的入口点
-                else if (newG <= neighbourN.g)
+                else if (newG <= edgeEndNode.g)
                 {
                     updateNode = true;
                 }
@@ -168,11 +206,11 @@ public class Graph
                 // 数据更新
                 if (updateNode)
                 {
-                    neighbourN.cameFrom = thisN;                // 更新来源点
-                    neighbourN.g = newG;                        // 已消耗代价更新
-                    neighbourN.h = Vector3.SqrMagnitude(        // 启发代价更新
+                    edgeEndNode.cameFrom = thisN;                // 更新来源点
+                    edgeEndNode.g = newG;                        // 已消耗代价更新
+                    edgeEndNode.h = Vector3.SqrMagnitude(        // 启发代价更新
                         endNode.nodeBounds.center -
-                        neighbourN.octreeNode.nodeBounds.center
+                        edgeEndNode.octreeNode.nodeBounds.center
                     );
                 }
             }

@@ -11,24 +11,20 @@ public class Octree
     public Octree(GameObject[] worldObjects, float minNodeSize, Graph navgraph)
     {
         navigationGraph = navgraph;
-        Bounds bounds = new();
         
-        // 根包围盒
+        Bounds bounds = new();
         foreach (var wObject in worldObjects)
         {
             bounds.Encapsulate(wObject.GetComponent<Collider>().bounds);
         }
         float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
-        Vector3 sizeVector = new Vector3(maxSize, maxSize, maxSize) / 2;
+        Vector3 sizeVector = new Vector3(maxSize, maxSize, maxSize) * 1.0f;
         bounds.SetMinMax(bounds.center - sizeVector, bounds.center + sizeVector);
-        
-        // 根节点构建
         rootNode = new OctreeNode(bounds, minNodeSize, null);
-        AddWorldObject(worldObjects);
         
-        // 本地数据更新
-        GetEmptyLeaves(rootNode);
-        navigationGraph.ProcrssConnections();
+        AddWorldObject(worldObjects);
+        GetEmptyLeaves(rootNode);           
+        navigationGraph.ConnectNodeNodeNeighbours();
     }
 
     public void AddWorldObject(GameObject[] worldObjects)

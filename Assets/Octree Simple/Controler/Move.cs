@@ -8,14 +8,14 @@ public class Move : MonoBehaviour
     public float accuray = 1.0f;            // 位置精度
     
     // 实时导航数据
-    private int currentWayPoint = 0;
-    private OctreeNode currentNode;
+    private int m_CurWayPoint = 0;
+    private OctreeNode m_CurNode;
 
     // 八叉树导航数据
     public GameObject createOctree;
-    private Octree octree;
-    private Graph graph;
-    public List<Node> aStarPathList = new();
+    private Octree m_Octree;
+    private Graph m_Graph;
+    private List<Node> m_AStarPathList = new();
     
     void Start()
     {
@@ -24,27 +24,27 @@ public class Move : MonoBehaviour
 
     void Update()
     {
-        if (octree == null  || graph == null)
+        if (m_Octree == null  || m_Graph == null)
         {
             return;
         }
 
-        if (currentWayPoint >= GetAStarPathCount())
+        if (m_CurWayPoint >= GetAStarPathCount())
         {
             ReStartMove();
         }
         else
         {
-            float distance = Vector3.Distance(GetAstarPathNode(currentWayPoint).octreeNode.nodeBounds.center, transform.position);
+            float distance = Vector3.Distance(GetAstarPathNode(m_CurWayPoint).octreeNode.nodeBounds.center, transform.position);
             if (distance <= accuray)
             {
-                currentWayPoint++;
+                m_CurWayPoint++;
             }
 
-            if (currentWayPoint < GetAStarPathCount())
+            if (m_CurWayPoint < GetAStarPathCount())
             {
-                currentNode = GetAstarPathNode(currentWayPoint).octreeNode;
-                Vector3 direction = currentNode.nodeBounds.center - transform.position;
+                m_CurNode = GetAstarPathNode(m_CurWayPoint).octreeNode;
+                Vector3 direction = m_CurNode.nodeBounds.center - transform.position;
                 transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
             }
         }
@@ -53,34 +53,34 @@ public class Move : MonoBehaviour
     private void DataInit()
     {
         CreateOctree createOctreeComp = createOctree.GetComponent<CreateOctree>();
-        octree = createOctreeComp.Octree;
-        graph = createOctreeComp.WayPointGraph;
+        m_Octree = createOctreeComp.Octree;
+        m_Graph = createOctreeComp.WayPointGraph;
 
         ReStartMove();
     }
 
     public void ReStartMove()
     {
-        var startNode = (currentNode != null)
-            ? currentNode
-            : graph.nodeList[Random.Range(0, graph.nodeList.Count)].octreeNode;
-        var endNode = graph.nodeList[Random.Range(0, graph.nodeList.Count)].octreeNode;
+        var startNode = (m_CurNode != null)
+            ? m_CurNode
+            : m_Graph.nodeList[Random.Range(0, m_Graph.nodeList.Count)].octreeNode;
+        var endNode = m_Graph.nodeList[Random.Range(0, m_Graph.nodeList.Count)].octreeNode;
         
-        bool randomSuc = graph.AStar(startNode, endNode, ref aStarPathList);
+        bool randomSuc = m_Graph.AStar(startNode, endNode, ref m_AStarPathList);
         if (randomSuc)
         {
-            currentWayPoint = 0;
+            m_CurWayPoint = 0;
             transform.position = GetAstarPathNode(0).octreeNode.nodeBounds.center;
         }
     }
 
     private int GetAStarPathCount()
     {
-        return aStarPathList.Count;
+        return m_AStarPathList.Count;
     }
 
     private Node GetAstarPathNode(int index)
     {
-        return aStarPathList[index];
+        return m_AStarPathList[index];
     }
 }
