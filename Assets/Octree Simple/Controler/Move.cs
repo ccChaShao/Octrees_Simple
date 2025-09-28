@@ -27,55 +27,49 @@ public class Move : MonoBehaviour
         {
             return;
         }
-        
-        var pathCacheListCount = graph.GetChachePathCount();
-        Debug.LogError("charsiew : [Update] : 2222-------------"+pathCacheListCount); 
-        if (pathCacheListCount <= 0)
+
+        if (currentWayPoint >= graph.GetCachePathCount())
         {
-            return;
+            ReStartMove();
         }
-    
-        // 到达目的地则重新获取目的地并在下一帧重新开始；
-        if (currentWayPoint >= pathCacheListCount)
+        else
         {
-            GetRandomDestination();
-            return;
-        }
-        
-        // 检查是否到达目的地；
-        var distance = Vector3.Distance(
-            graph.GetCachePathNode(currentWayPoint).octreeNode.nodeBounds.center,
-            transform.position
-        );
-        if (distance <= accuray)
-        {
-            currentWayPoint++;
-        }
-        
-        // 数据更新
-        if (currentWayPoint < graph.GetChachePathCount())
-        {
-            currentNode = graph.GetCachePathNode(currentWayPoint).octreeNode;
-            Vector3 direction = currentNode.nodeBounds.center - transform.position;
-            transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
+            float distance = Vector3.Distance(graph.GetCachePathNode(currentWayPoint).octreeNode.nodeBounds.center, transform.position);
+            if (distance <= accuray)
+            {
+                currentWayPoint++;
+            }
+
+            if (currentWayPoint < graph.GetCachePathCount())
+            {
+                currentNode = graph.GetCachePathNode(currentWayPoint).octreeNode;
+                Vector3 direction = currentNode.nodeBounds.center - transform.position;
+                transform.Translate(direction.normalized * speed * Time.deltaTime, Space.World);
+            }
         }
     }
 
     private void DataInit()
     {
-        var createOctreeComp = createOctree.GetComponent<CreateOctree>();
+        CreateOctree createOctreeComp = createOctree.GetComponent<CreateOctree>();
         octree = createOctreeComp.Octree;
         graph = createOctreeComp.WayPointGraph;
 
-        GetRandomDestination();
+        ReStartMove();
     }
 
-    private void GetRandomDestination()
+    public void ReStartMove()
     {
-        int random = Random.Range(0, graph.nodeList.Count);
-        graph.AStar(
-            graph.nodeList[0].octreeNode,
-            graph.nodeList[random].octreeNode
-        );
+        var startNode = (currentNode != null)
+            ? currentNode
+            : graph.nodeList[Random.Range(0, graph.nodeList.Count)].octreeNode;
+        var endNode = graph.nodeList[Random.Range(0, graph.nodeList.Count)].octreeNode;
+        
+        bool randomSuc = graph.AStar(startNode, endNode);
+        if (randomSuc)
+        {
+            currentWayPoint = 0;
+            transform.position = graph.GetCachePathNode(0).octreeNode.nodeBounds.center;
+        }
     }
 }

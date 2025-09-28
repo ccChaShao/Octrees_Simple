@@ -28,9 +28,7 @@ public class Octree
         
         // 本地数据更新
         GetEmptyLeaves(rootNode);
-        ProcrssConnections();
-
-        Debug.Log("charsiew : [Octree] : -----------------"+navigationGraph.edgeList.Count);
+        navigationGraph.ProcrssConnections();
     }
 
     public void AddWorldObject(GameObject[] worldObjects)
@@ -65,36 +63,7 @@ public class Octree
         }
     }
 
-    public void ProcrssConnections()
+    public void DrawDebug()
     {
-        Dictionary<int, int> subGraphConnections = new();
-        
-        foreach (var otnI in emptyLeaves)
-        {
-            foreach (var otnJ in emptyLeaves)
-            {
-                if(otnI.id == otnJ.id)
-                    continue;
-
-                // 同层级连接
-                if (otnI.parent.id == otnJ.parent.id)
-                {
-                    navigationGraph.AddEdge(otnI, otnJ);
-                }
-                // 不同层级连接
-                else
-                {
-                    if (subGraphConnections.TryAdd(otnI.parent.id, otnJ.parent.id))         // 假如已经连接过，就不需要再连接了，暂时这样处理
-                    {
-                        Vector3 direction = otnJ.nodeBounds.center - otnI.nodeBounds.center;
-                        float accuracy = 1;
-                        if (!Physics.SphereCast(otnI.nodeBounds.center, accuracy, direction, out RaycastHit hitInfo))
-                        {
-                            navigationGraph.AddEdge(otnI, otnJ);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

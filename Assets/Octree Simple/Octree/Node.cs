@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Node
 {
-    public OctreeNode octreeNode;           // 
-    public List<Edge> edgeList = new ();    // 以自己为出发的所有正向边界；
+    public OctreeNode octreeNode;
+    public List<Edge> edgeList = new ();            // 以本体为起点的所有链接路径
     
     // A*
     public Node path;

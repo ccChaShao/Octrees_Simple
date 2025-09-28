@@ -27,6 +27,7 @@ public class CreateOctree : MonoBehaviour
             return;
         }
         
+        m_Octree.DrawDebug();
         m_Octree.rootNode.DrawDebug();
         m_Octree.navigationGraph.DrawDebug();
     }

@@ -47,7 +47,7 @@ public class Graph
         return null;
     }
 
-    public int GetChachePathCount()
+    public int GetCachePathCount()
     {
         return pathCacheList.Count;
     }
@@ -72,8 +72,53 @@ public class Graph
             Debug.DrawLine(
                 edgeList[i].startNode.octreeNode.nodeBounds.center,
                 edgeList[i].endNode.octreeNode.nodeBounds.center,
-                Color.yellow
+                Color.red
             );
+        }
+        
+        // a*路径绘制
+        for (int i = 0; i < pathCacheList.Count; i++)
+        {
+            if (i + 1 >= pathCacheList.Count)
+            {
+                continue;
+            }
+            Debug.DrawLine(
+                pathCacheList[i].octreeNode.nodeBounds.center,
+                pathCacheList[i+1].octreeNode.nodeBounds.center,
+                Color.black
+            );
+        }
+    }
+
+    public void ProcrssConnections()
+    {
+        Dictionary<int, int> subGraphConnections = new();
+        
+        foreach (var nodeI in nodeList)
+        {
+            foreach (var nodeJ in nodeList)
+            {
+                var otnI = nodeI.octreeNode;
+                var otnJ = nodeJ.octreeNode;
+                
+                if(otnI.id == otnJ.id)
+                    continue;
+
+                // 同层级连接
+                if (otnI.parent.id == otnJ.parent.id)
+                {
+                    AddEdge(otnI, otnJ);
+                }
+                // 不同层级连接
+                else
+                {
+                    if (subGraphConnections.TryAdd(otnI.parent.id, otnJ.parent.id))         // 假如已经连接过，就不需要再连接了，暂时这样处理
+                    {
+                        AddEdge(otnI, otnJ);
+                    }
+                }
+            }
         }
     }
 
@@ -119,17 +164,16 @@ public class Graph
             openList.RemoveAt(thisI);         // 待考察的节点
             closeList.Add(thisN);             // 已经考察过的节点
             
-            Node neighbourN;
             foreach (Edge edge in thisN.edgeList)
             {
-                neighbourN = edge.endNode;
+                Node neighbourN = edge.endNode;
 
                 if (closeList.IndexOf(neighbourN) > -1)
                 {
                     continue; 
                 }
 
-                bool isBetterG = false;
+                bool updateNode = false;
                 float newG = thisN.g + Vector3.SqrMagnitude
                 (
                     neighbourN.octreeNode.nodeBounds.center -
@@ -137,19 +181,19 @@ public class Graph
                 );
 
                 // 首次被发现
-                if (openList.IndexOf(neighbourN) == -1)
+                if (openList.IndexOf(neighbourN) <= -1)
                 {
                     openList.Add(neighbourN);
-                    isBetterG = true;
+                    updateNode = true;
                 }
                 // 有更近的入口点
                 else if (newG <= neighbourN.g)
                 {
-                    isBetterG = true;
+                    updateNode = true;
                 }
                 
                 // 数据更新
-                if (isBetterG)
+                if (updateNode)
                 {
                     neighbourN.cameFrom = thisN;                // 更新来源点
                     neighbourN.g = newG;                        // 已消耗代价更新
