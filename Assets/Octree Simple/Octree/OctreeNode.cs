@@ -23,91 +23,86 @@ public class OctreeNode
     // 节点信息
     public int id;
     public float minSize;
-    public Bounds nodeBounds = new();
-    public Bounds[] childNodeBounds = null;
+    public Bounds bounds = new();
+    public Bounds[] childBounds = null;
     
     // 父亲节点信息
     public OctreeNode parent;
     
     // 孩子节点信息
     public bool isContainedChild = false;
-    public OctreeNode[] childrenNodes = null;
+    public OctreeNode[] children = null;
     
     // 世界物体包含信息
-    public List<OctreeObject> containedObjects = new();
+    public List<OctreeObject> containedObjects = new();         // 充当阻挡
 
-    public OctreeNode(Bounds nodeBounds, float minSize, OctreeNode parent)
+    public OctreeNode(Bounds bounds, float minSize, OctreeNode parent)
     {
         this.id = Utils.idInt++;
         this.parent = parent;
-        this.nodeBounds = nodeBounds;
+        this.bounds = bounds;
         this.minSize = minSize;
         BuildChildBounds();
     }
 
     private void BuildChildBounds()
     {
-        float quarter = nodeBounds.size.x / 4f;
-        Vector3 childSize = new Vector3(nodeBounds.size.x / 2f, nodeBounds.size.x / 2f, nodeBounds.size.x / 2f);
-        childNodeBounds = new[]
+        float quarter = bounds.size.x / 4f;
+        Vector3 childSize = new Vector3(bounds.size.x / 2f, bounds.size.x / 2f, bounds.size.x / 2f);
+        childBounds = new[]
         {
             // 4 2 1
-            new Bounds(nodeBounds.center + new Vector3(-quarter, -quarter, -quarter), childSize),     // 0
-            new Bounds(nodeBounds.center + new Vector3(-quarter, -quarter, quarter), childSize),      // 1    
-            new Bounds(nodeBounds.center + new Vector3(-quarter, quarter, -quarter), childSize),      // 2
-            new Bounds(nodeBounds.center + new Vector3(-quarter, quarter, quarter), childSize),       // 3
-            new Bounds(nodeBounds.center + new Vector3(quarter, -quarter, -quarter), childSize),      // 4
-            new Bounds(nodeBounds.center + new Vector3(quarter, -quarter, quarter), childSize),       // 5
-            new Bounds(nodeBounds.center + new Vector3(quarter, quarter, -quarter), childSize),       // 6
-            new Bounds(nodeBounds.center + new Vector3(quarter, quarter, quarter), childSize),        // 7
+            new Bounds(bounds.center + new Vector3(-quarter, -quarter, -quarter), childSize),     // 0
+            new Bounds(bounds.center + new Vector3(-quarter, -quarter, quarter), childSize),      // 1    
+            new Bounds(bounds.center + new Vector3(-quarter, quarter, -quarter), childSize),      // 2
+            new Bounds(bounds.center + new Vector3(-quarter, quarter, quarter), childSize),       // 3
+            new Bounds(bounds.center + new Vector3(quarter, -quarter, -quarter), childSize),      // 4
+            new Bounds(bounds.center + new Vector3(quarter, -quarter, quarter), childSize),       // 5
+            new Bounds(bounds.center + new Vector3(quarter, quarter, -quarter), childSize),       // 6
+            new Bounds(bounds.center + new Vector3(quarter, quarter, quarter), childSize),        // 7
         };
     }
 
-    private void DivideAndAdd(GameObject worldObject)
+    public void DivideAndAdd(GameObject worldObject)
     {
         OctreeObject octObj = new OctreeObject(worldObject);
         // 最底层，直接添加
-        if (nodeBounds.size.x <= minSize)
+        if (bounds.size.x <= minSize)
         {
+            octObj.go.name = $"otn_go_in_{id}";
             containedObjects.Add(octObj);           
             return;
         }
 
         // 内部分割
-        if (childrenNodes == null)
-            childrenNodes = new OctreeNode[8];
+        if (children == null)
+            children = new OctreeNode[8];
         for (int i = 0; i < 8; i++)
         {
-            if (childrenNodes[i] == null) 
-                childrenNodes[i] = new OctreeNode(childNodeBounds[i], minSize, this);
-            if (childrenNodes[i].nodeBounds.Intersects(octObj.bounds))
+            if (children[i] == null) 
+                children[i] = new OctreeNode(childBounds[i], minSize, this);
+            if (children[i].bounds.Intersects(octObj.bounds))
             {
                 isContainedChild = true;
-                childrenNodes[i].DivideAndAdd(worldObject);
+                children[i].DivideAndAdd(worldObject);
             }
         }
         if (!isContainedChild)
         {
-            childrenNodes = null;           // 清理节点；
-            containedObjects.Add(octObj);   // 直接包含；
+            children = null;           // 清理节点；
         }
     }
-
-    public void AddWorldObject(GameObject worldObject)
-    {
-        DivideAndAdd(worldObject);
-    } 
 
     public void DrawDebug()
     {
         // draw my bounds
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(nodeBounds.center, nodeBounds.size);
+        Gizmos.DrawWireCube(bounds.center, bounds.size);
         // draw contain cube
         if (containedObjects.Count > 0)
         {
             Gizmos.color = new Color(0, 0, 1, 0.75f);
-            Gizmos.DrawCube(nodeBounds.center, nodeBounds.size);
+            Gizmos.DrawCube(bounds.center, bounds.size);
 
             foreach (var obj in containedObjects)
             {
@@ -116,13 +111,13 @@ public class OctreeNode
             }
         }
         // draw child bounds
-        if (childrenNodes != null)
+        if (children != null)
         {
-            for (int i = 0; i < childrenNodes.Length; i++)
+            for (int i = 0; i < children.Length; i++)
             {
-                if (childrenNodes[i] != null)
+                if (children[i] != null)
                 {
-                    childrenNodes[i].DrawDebug();
+                    children[i].DrawDebug();
                 }
             }
         }

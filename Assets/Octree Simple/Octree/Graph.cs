@@ -85,15 +85,15 @@ public class Graph
         foreach (var node in nodeList)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(node.octreeNode.nodeBounds.center, 0.25f);
+            Gizmos.DrawWireSphere(node.octreeNode.bounds.center, 0.25f);
         }
         
         // 边界路径绘制
         for (int i = 0; i < edgeList.Count; i++)
         {
             Debug.DrawLine(
-                edgeList[i].startNode.octreeNode.nodeBounds.center,
-                edgeList[i].endNode.octreeNode.nodeBounds.center,
+                edgeList[i].startNode.octreeNode.bounds.center,
+                edgeList[i].endNode.octreeNode.bounds.center,
                 Color.red
             );
         }
@@ -111,11 +111,11 @@ public class Graph
                 }
                 for (int k = 0; k < m_SixDirs.Count; k++)
                 {
-                    m_CacheRay.origin = nodeList[i].octreeNode.nodeBounds.center;
+                    m_CacheRay.origin = nodeList[i].octreeNode.bounds.center;
                     m_CacheRay.direction = m_SixDirs[k];
-                    float maxLength = nodeList[i].octreeNode.nodeBounds.size.x / 2.0f + 0.01f;
+                    float maxLength = nodeList[i].octreeNode.bounds.size.x / 2.0f + 0.01f;
                     // 单次最多是24个
-                    if (nodeList[j].octreeNode.nodeBounds.IntersectRay(m_CacheRay, out float hitLength))
+                    if (nodeList[j].octreeNode.bounds.IntersectRay(m_CacheRay, out float hitLength))
                     {
                         if (hitLength <= maxLength)
                         {
@@ -150,7 +150,7 @@ public class Graph
 
         // 代价计算
         start.g = 0;
-        start.h = Vector3.SqrMagnitude(endNode.nodeBounds.center - startNode.nodeBounds.center);
+        start.h = Vector3.SqrMagnitude(endNode.bounds.center - startNode.bounds.center);
         
         openList.Add(start);
         while (openList.Count > 0)
@@ -181,8 +181,8 @@ public class Graph
                 bool updateNode = false;
                 float newG = thisN.g + Vector3.SqrMagnitude
                 (
-                    edgeEndNode.octreeNode.nodeBounds.center -
-                    thisN.octreeNode.nodeBounds.center
+                    edgeEndNode.octreeNode.bounds.center -
+                    thisN.octreeNode.bounds.center
                 );
 
                 // 首次被发现
@@ -203,8 +203,8 @@ public class Graph
                     edgeEndNode.cameFrom = thisN;                // 更新来源点
                     edgeEndNode.g = newG;                        // 已消耗代价更新
                     edgeEndNode.h = Vector3.SqrMagnitude(        // 启发代价更新
-                        endNode.nodeBounds.center -
-                        edgeEndNode.octreeNode.nodeBounds.center
+                        endNode.bounds.center -
+                        edgeEndNode.octreeNode.bounds.center
                     );
                 }
             }

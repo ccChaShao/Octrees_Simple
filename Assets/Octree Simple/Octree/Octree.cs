@@ -23,7 +23,7 @@ public class Octree
         rootNode = new OctreeNode(bounds, minNodeSize, null);
         
         AddWorldObject(worldObjects);
-        GetEmptyLeaves(rootNode);           
+        InitEmptyLeaves(rootNode);           
         navigationGraph.ConnectNodeNodeNeighbours();
     }
 
@@ -31,17 +31,18 @@ public class Octree
     {
         foreach (var go in worldObjects)
         {
-            rootNode.AddWorldObject(go);
+            rootNode.DivideAndAdd(go);
         }
     }
 
-    public void GetEmptyLeaves(OctreeNode otn)
+    public void InitEmptyLeaves(OctreeNode otn)
     {
+        emptyLeaves.Clear();
         if (otn == null)
             return;
         
         // 根节点记录
-        if (otn.childrenNodes == null)
+        if (otn.children == null)
         {
             if (otn.containedObjects.Count <= 0)
             {
@@ -52,14 +53,42 @@ public class Octree
         // 子节点递归查询
         else
         {
-            for (int i = 0; i < otn.childrenNodes.Length; i++)
+            for (int i = 0; i < otn.children.Length; i++)
             {
-                GetEmptyLeaves(otn.childrenNodes[i]);
+                InitEmptyLeaves(otn.children[i]);
             }
         }
     }
 
-    public void DrawDebug()
+    public int FindEmptyLeafNode(OctreeNode node, Vector3 position)
     {
+        int found = -1;
+
+        if (node == null)
+            return -1;
+        
+        // 查到叶子节点则跳出
+        if (node.children == null || node.children.Length <= 0)
+        {
+            if (node.bounds.Contains(position) && node.containedObjects.Count <= 0)
+            {
+                return node.id;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < node.children.Length; i++)
+            {
+                found = FindEmptyLeafNode(node.children[i], position);
+                if (found != -1)
+                {
+                    break;          
+                }
+            }
+        }
+        
+        return found;
     }
+
+    public void DrawDebug() { }
 }
