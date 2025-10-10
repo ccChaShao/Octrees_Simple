@@ -24,8 +24,8 @@ public class Octree
         
         // 八叉树创建
         rootNode = new OctreeNode(bounds, minNodeSize, null);
-        InitEmptyLeaves();
         AddWorldObject(worldObjects);    
+        InitEmptyLeaves();
         navigationGraph.ConnectNodeNodeNeighbours();
     }
 
