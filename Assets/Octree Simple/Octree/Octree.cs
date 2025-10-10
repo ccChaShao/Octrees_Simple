@@ -12,6 +12,7 @@ public class Octree
     {
         navigationGraph = navgraph;
         
+        // 包围盒创建
         Bounds bounds = new();
         foreach (var wObject in worldObjects)
         {
@@ -20,6 +21,8 @@ public class Octree
         float maxSize = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
         Vector3 sizeVector = new Vector3(maxSize, maxSize, maxSize) * 1.0f;
         bounds.SetMinMax(bounds.center - sizeVector, bounds.center + sizeVector);
+        
+        // 八叉树创建
         rootNode = new OctreeNode(bounds, minNodeSize, null);
         
         AddWorldObject(worldObjects);
