@@ -109,6 +109,7 @@ public class Graph
                 {
                     continue;
                 }
+                // 六方向检查
                 for (int k = 0; k < m_SixDirs.Count; k++)
                 {
                     m_CacheRay.origin = nodeList[i].octreeNode.bounds.center;
@@ -117,6 +118,7 @@ public class Graph
                     // 单次最多是24个
                     if (nodeList[j].octreeNode.bounds.IntersectRay(m_CacheRay, out float hitLength))
                     {
+                        // 仅连接相邻邻居（最短）
                         if (hitLength <= maxLength)
                         {
                             AddEdge(nodeList[i].octreeNode, nodeList[j].octreeNode);
